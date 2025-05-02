@@ -1,0 +1,47 @@
+name: "build"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: build
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+      - name: copy
+        run: |
+          mkdir out
+          cp ./main.pdf ./out/main.pdf
+      - uses: actions/upload-artifact@v4
+        with:
+          name: main.pdf
+          path: out/main.pdf
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: main.pdf
+          path: ./out
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./out/main.pdf
+          tag_name: ${{ github.ref_name }}
+
+ 
